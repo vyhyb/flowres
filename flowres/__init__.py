@@ -115,7 +115,7 @@ Please make sure to update tests as appropriate.
 
 [GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
 
-Fowres - A package for flow resistivity measurements according to ISO 9053-1
+Flowres - A package for flow resistivity measurements according to ISO 9053-1
 Copyright (C) 2025 David Jun
 
 This program is free software: you can redistribute it and/or modify
