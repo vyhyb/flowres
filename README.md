@@ -1,4 +1,4 @@
-"""Flowres - A package for flow resistivity measurements according to ISO 9053-1
+# Flowres - A package for flow resistivity measurements according to ISO 9053-1
 
 This package provides a set of tools for measuring flow resistivity of
 porous materials according to ISO 9053-1. The package assumes three main
@@ -134,7 +134,3 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ## References
 
 [1] ČSN EN ISO 9053-1 - Akustika - Stanovení odporu proti proudění vzduchu - část 1: Metoda statického proudění vzduchu, manual, Praha., 2019.
-"""
-from .flow_pressure_measurement import measurement_loop, measurement, voltage_guess
-from .misc import export_csv, flow_rate_array, final_beep
-from .processing import iso_calculation

@@ -1,3 +1,6 @@
+"""This module contains the functions for processing the data from
+the ISO 9053-1 related measurements.
+"""
 import numpy as np 
 from numpy import ndarray, savetxt
 import csv
@@ -43,6 +46,17 @@ class Results:
     thickness_std: float
 
     def export(self, filename='unknown', parent='.', delimiter=','):
+        """Export the results to a CSV file with the given filename and delimiter.
+
+        Parameters
+        ----------
+        filename : str, optional
+            The name of the file to save the results to. Defaults to 'unknown'.
+        parent : str, optional
+            The parent directory to save the file to. Defaults to '.'.
+        delimiter : str, optional
+            The delimiter to use in the CSV file. Defaults to ','.
+        """
         header='pressure'+delimiter+'flow_rate'
         data = np.stack((self.pressures, self.flow_rates), axis=1)
         savetxt(os.path.join(parent, filename+'_raw.csv'), data, delimiter=delimiter, header=header, comments='')
@@ -61,47 +75,156 @@ class Results:
             csvfile.write(header_str+"\n"+values_str)
 
 def flow_rate_conversions(flow_rates, input_dim = 'l/min'):
+    """Convert flow rates to m^3/s.
+
+    Parameters
+    ----------
+    flow_rates : ndarray
+        The array of flow rates to convert.
+    input_dim : str, optional
+        The input dimension of the flow rates. Defaults to 'l/min'.
+
+    Returns
+    -------
+    rates : ndarray
+        The array of flow rates converted to m^3/s.
+
+    Raises
+    ------
+    ValueError
+        If the input dimension is not implemented.
+    """
     input_dim = input_dim.split('/')
     mult = 1
 
     if input_dim[0] in MULT_VOLUME.keys():
         mult /= MULT_VOLUME[input_dim[0]]
     else:
-        print('input dim not implemented')
+        raise ValueError(f"Unsupported volume unit: {input_dim[0]}.\nSupported units: {MULT_VOLUME.keys()}")
 
     if input_dim[1] in MULT_TIME.keys():
         mult /= MULT_TIME[input_dim[1]]
     else:
-        print('input dim not implemented')
-    print(flow_rates)
+        raise ValueError(f"Unsupported time unit: {input_dim[1]}.\nSupported units: {MULT_TIME.keys()}")
+    # print(flow_rates)
     flow_rates *= mult
-    print(mult)
+    # print(mult)
     return flow_rates
 
 def regression(flow_rates, pressures):
+    """Perform a linear regression on the flow rates and pressures.
+
+    Parameters
+    ----------
+    flow_rates : ndarray
+        The array of flow rates.
+    pressures : ndarray
+        The array of pressures.
+
+    Returns
+    -------
+    reg : LinregressResult
+        The result of the linear regression.
+    """
     reg = linregress(flow_rates, pressures)
     return reg
 
 def airflow_resistance(reg):
+    """Calculate the airflow resistance from the regression.
+
+    Parameters
+    ----------
+    reg : LinregressResult
+        The result of the linear regression.
+    Returns
+    -------
+    flow_resistance : float
+        The airflow resistance
+    stderr : float
+        The standard error of the regression.
+    """
     flow_resistance = reg.slope
     stderr = reg.stderr
     return flow_resistance, stderr
 
 def specific_airflow_resistance(flow_resistance, surface_area):
+    """Calculate the specific airflow resistance.
+
+    Parameters
+    ----------
+    flow_resistance : float
+        The airflow resistance.
+    surface_area : float
+        The surface area of the specimen.
+
+    Returns
+    -------
+    specific_flow_resistance : float
+        The specific airflow resistance.
+    """
     specific_flow_resistance = flow_resistance*surface_area
     return specific_flow_resistance
 
 def airflow_resistivity(specific_flow_resistance, thickness):
+    """Calculate the airflow resistivity.
+
+    Parameters
+    ----------
+    specific_flow_resistance : float
+        The specific airflow resistance.
+    thickness : float
+        The thickness of the specimen.
+
+    Returns
+    -------
+    flow_resistivity : float
+        The airflow resistivity
+    """
     flow_resistivity = specific_flow_resistance / thickness
     return flow_resistivity
 
 def velocity_boundaries(flow_rates, surface_area):
+    """Calculate the minimum and maximum velocity boundaries.
+
+    Parameters
+    ----------
+    flow_rates : ndarray
+        The array of flow rates.
+    surface_area : float
+        The surface area of the specimen.
+
+    Returns
+    -------
+    vel_bound : Tuple[float, float]
+        The minimum and maximum velocity boundaries
+    """
     minimum = flow_rates.min() / surface_area
     maximum = flow_rates.max() / surface_area
     vel_bound = (minimum, maximum)
     return vel_bound
 
 def iso_calculation(flow_rates, pressures, surface_area, thickness, input_flow_dim = 'l/min'):
+    """Perform the ISO 9053-1 calculation.
+
+    Parameters
+    ----------
+    flow_rates : ndarray
+        The array of flow rates.
+    pressures : ndarray
+        The array of pressures.
+    surface_area : float or ndarray
+        The surface area of the specimen.
+    thickness : float or ndarray
+        The thickness of the specimen.
+    input_flow_dim : str, optional
+        The input dimension of the flow rates. Defaults to '
+        l/min'.
+
+    Returns
+    -------
+    results : Results
+        The results of the calculation.
+    """
     flr = flow_rates.copy()
     flow_rates_m3 = flow_rate_conversions(flr, input_dim=input_flow_dim)
     reg = regression(flow_rates=flow_rates_m3, pressures=pressures)

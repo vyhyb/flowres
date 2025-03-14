@@ -9,7 +9,7 @@ class FlowActuator(Protocol):
     def read_voltage(self):
         ...
         
-# PID Controller Class
+# PID Controller Class, not fully implemented
 class PIDController:
     def __init__(self, kp=0.0, ki=0.0, kd=0.0, setpoint=0.0, sample_time=0.1):
         self.kp = kp

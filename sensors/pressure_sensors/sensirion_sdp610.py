@@ -2,7 +2,7 @@ import serial
 import numpy as np
 import time
 
-class PressureSensor:
+class SensirionSDP610PressureSensor:
     def __init__(self, port="COM12", scale_factor=1200):
         self.port = port
         self.scale_factor = scale_factor
@@ -43,7 +43,7 @@ class PressureSensor:
 
 # Usage example:
 if __name__ == "__main__":
-    pressure_sensor = PressureSensor()
+    pressure_sensor = SensirionSDP610PressureSensor()
     pressure_sensor.open_connection()
     try:
         average_pressure = pressure_sensor.read_pressure(num_readings=10)
